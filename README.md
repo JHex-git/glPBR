@@ -1,0 +1,1 @@
+CMake在configure时需要定义GLFW3_DIR，指向glfw3的安装目录，比如：`-DGLFW3_DIR=/usr/local/lib/cmake/glfw3`
