@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/glm.hpp>
 
 class Shader
 {
@@ -10,6 +11,11 @@ public:
     void Use();
     void Render();
 
+    void SetUniform(const char* name, float value);
+    void SetUniform(const char* name, int value);
+    void SetUniform(const char* name, bool value);
+    void SetUniform(const char* name, glm::mat4 trans);
+
 private:
     bool prepareShader(const char* vertexShaderPath, const char* fragmentShaderPath);
     void prepareData();
@@ -18,6 +24,7 @@ private:
     unsigned int m_VBO;
     unsigned int m_EBO;
     unsigned int m_shaderProgram;
-    unsigned int m_texture;
+    unsigned int m_texture1;
+    unsigned int m_texture2;
     bool m_initialized;
 };

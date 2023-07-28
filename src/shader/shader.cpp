@@ -7,10 +7,13 @@
 #include <cmath>
 #include <string>
 #include <sstream>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "utility/stb_image.h"
 
 bool Shader::Initialize(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
+    glm::value_ptr(glm::mat4(1.0f));
     if (prepareShader(vertexShaderPath, fragmentShaderPath))
     {
         prepareData();
@@ -39,12 +42,25 @@ Shader::~Shader()
 
 void Shader::Render()
 {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set the color to clear the screen
+    glClear(GL_COLOR_BUFFER_BIT);
+    
     float timeValue = glfwGetTime();
     float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
     // int vertexColorLocation = glGetUniformLocation(m_shaderProgram, "ourColor");
     glUseProgram(m_shaderProgram);
     glBindVertexArray(m_VAO);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_texture2);
+    SetUniform("texture1", 0);
+    SetUniform("texture2", 1);
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans = glm::rotate(trans, (float)glfwGetTime(),
+    glm::vec3(0.0f, 0.0f, 1.0f));
+    SetUniform("transform", trans);
     // glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -55,6 +71,33 @@ void Shader::Render()
     // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+void Shader::SetUniform(const char* name, float value)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniform1f(location, value);
+}
+
+void Shader::SetUniform(const char* name, int value)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniform1i(location, value);
+}
+
+void Shader::SetUniform(const char* name, bool value)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniform1i(location, value);
+}
+
+void Shader::SetUniform(const char* name, glm::mat4 trans)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(trans));
+}
 
 void Shader::prepareData()
 {
@@ -85,11 +128,13 @@ void Shader::prepareData()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2); // enable the vertex texture attribute
 
+    stbi_set_flip_vertically_on_load(true);
     // load and create a texture
     int width, height, nrChannels;
     unsigned char* data = stbi_load("resources/textures/container.jpg", &width, &height, &nrChannels, 0);
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    glGenTextures(1, &m_texture1);
+    glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, m_texture1); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
     // set the texture wrapping parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
@@ -101,6 +146,31 @@ void Shader::prepareData()
     {
         // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // generate a texture on the currently bound texture object
+        glGenerateMipmap(GL_TEXTURE_2D); // generate all required mipmaps for the currently bound texture
+        stbi_image_free(data); // free the image memory
+    }
+    else
+    {
+        std::cerr << "Failed to load texture" << std::endl;
+        return;
+    }
+
+    data = stbi_load("resources/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+    glGenTextures(1, &m_texture2);
+    glActiveTexture(GL_TEXTURE1); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, m_texture2); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set texture filtering to GL_LINEAR (default filtering method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // set texture filtering to GL_LINEAR (default filtering method)
+    // load image, create texture and generate mipmaps
+    if (data)
+    {
+        // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
+        // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // generate a texture on the currently bound texture object
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // generate a texture on the currently bound texture object
         glGenerateMipmap(GL_TEXTURE_2D); // generate all required mipmaps for the currently bound texture
         stbi_image_free(data); // free the image memory
     }
