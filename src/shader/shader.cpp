@@ -17,6 +17,7 @@ bool Shader::Initialize(const char* vertexShaderPath, const char* fragmentShader
     if (prepareShader(vertexShaderPath, fragmentShaderPath))
     {
         prepareData();
+        glEnable(GL_DEPTH_TEST); // enable depth test
         m_initialized = true;
         return true;
     }
@@ -43,8 +44,8 @@ Shader::~Shader()
 void Shader::Render()
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set the color to clear the screen
-    glClear(GL_COLOR_BUFFER_BIT);
-    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     float timeValue = glfwGetTime();
     float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
     // int vertexColorLocation = glGetUniformLocation(m_shaderProgram, "ourColor");
@@ -56,12 +57,17 @@ void Shader::Render()
     glBindTexture(GL_TEXTURE_2D, m_texture2);
     SetUniform("texture1", 0);
     SetUniform("texture2", 1);
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-    trans = glm::rotate(trans, (float)glfwGetTime(),
-    glm::vec3(0.0f, 0.0f, 1.0f));
-    SetUniform("transform", trans);
-    // glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+    glm::mat4 model(1.0f);
+    glm::vec3 rotate_axis(0.5f, 1.0f, 0.0f);
+    rotate_axis = glm::normalize(rotate_axis);
+    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.f), rotate_axis);
+    SetUniform("model", model);
+    glm::mat4 view(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    SetUniform("view", view);
+    glm::mat4 projection(1.0f);
+    projection = glm::perspective(glm::radians(45.f), 800.f / 600.f, 0.1f, 100.f);
+    SetUniform("projection", projection);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // glDrawArrays(GL_TRIANGLES, 0, 3);
 
