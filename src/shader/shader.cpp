@@ -1,4 +1,3 @@
-#include "shader/shader.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -10,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "utility/stb_image.h"
-
+#include "shader/shader.h"
 bool Shader::Initialize(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
     glm::value_ptr(glm::mat4(1.0f));
@@ -41,7 +40,7 @@ Shader::~Shader()
     }
 }
 
-void Shader::Render()
+void Shader::Render(std::shared_ptr<cameras::Camera> camera)
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set the color to clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -62,11 +61,10 @@ void Shader::Render()
     rotate_axis = glm::normalize(rotate_axis);
     model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.f), rotate_axis);
     SetUniform("model", model);
-    glm::mat4 view(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    auto view = camera->GetViewMatrix();
+    // std::cout << glm::to_string(view) << std::endl;
     SetUniform("view", view);
-    glm::mat4 projection(1.0f);
-    projection = glm::perspective(glm::radians(45.f), 800.f / 600.f, 0.1f, 100.f);
+    auto projection = camera->GetProjectionMatrix();
     SetUniform("projection", projection);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     // glDrawArrays(GL_TRIANGLES, 0, 3);

@@ -1,5 +1,7 @@
 #pragma once
+#include "cameras/camera.h"
 #include <glm/glm.hpp>
+#include <memory>
 
 class Shader
 {
@@ -9,7 +11,7 @@ public:
     bool Initialize(const char* vertexShaderPath, const char* fragmentShaderPath);
 
     void Use();
-    void Render();
+    void Render(std::shared_ptr<cameras::Camera> camera);
 
     void SetUniform(const char* name, float value);
     void SetUniform(const char* name, int value);
