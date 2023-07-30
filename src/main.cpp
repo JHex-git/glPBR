@@ -4,6 +4,10 @@
 #include <memory>
 #include "shader/shader.h"
 #include "cameras/camera.h"
+#include "object3ds/model.h"
+#include "utility/stb_image.h"
+
+using object3ds::Model;
 
 std::shared_ptr<cameras::Camera> camera;
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -50,7 +54,9 @@ int main()
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+    stbi_set_flip_vertically_on_load(true);
 
+    glEnable(GL_DEPTH_TEST); // enable depth test
     glViewport(0, 0, 800, 600); // set the viewport to the whole window, left lower and right upper corner coordinates
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); // set the callback function for window resize
 
@@ -65,7 +71,8 @@ int main()
         camera->Dolly(yoffset);
     });
 
-
+    Model model;
+    model.Load("resources/backpack.obj");
     {
         Shader shader;
         if (shader.Initialize("shader/vs.glsl", "shader/fs.glsl"))
@@ -75,9 +82,25 @@ int main()
                 float currentFrame = glfwGetTime();
                 deltaTime = currentFrame - lastFrame;
                 lastFrame = currentFrame;
-                
                 processInput(window);
-                shader.Render(camera);
+
+                glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set the color to clear the screen
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                shader.Use();
+
+                // render the loaded model
+                glm::mat4 model_mat = glm::mat4(1.0f);
+                model_mat = glm::translate(model_mat, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+                model_mat = glm::scale(model_mat, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+                shader.SetUniform("model", model_mat);
+
+                auto view_mat = camera->GetViewMatrix();
+                shader.SetUniform("view", view_mat);
+                auto projection_mat = camera->GetProjectionMatrix();
+                shader.SetUniform("projection", projection_mat);
+
+
+                model.Draw(shader);
                 glfwSwapBuffers(window);
                 glfwPollEvents();
             }
