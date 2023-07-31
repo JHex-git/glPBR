@@ -87,18 +87,32 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         // diffuse maps
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        std::vector<Texture> albedoMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "albedo");
+        textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
         // specular maps
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        // TODO: why height with normal
         // normal maps
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-        // height maps
-        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        // // height maps
+        // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
+        // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        // metallic maps
+        std::vector<Texture> metalicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metalic");
+        textures.insert(textures.end(), metalicMaps.begin(), metalicMaps.end());
+        // roughness maps
+        std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness");
+        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        // emissive maps
+        std::vector<Texture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissive");
+        textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
+        // displacement maps
+        std::vector<Texture> displacementMaps = loadMaterialTextures(material, aiTextureType_DISPLACEMENT, "displacement");
+        textures.insert(textures.end(), displacementMaps.begin(), displacementMaps.end());
+        // ao maps
+        std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "ao");
+        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
     }
     return Mesh(vertices, indices, textures);
 }

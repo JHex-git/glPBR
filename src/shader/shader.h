@@ -10,6 +10,8 @@ public:
 
     bool Initialize(const char* vertexShaderPath, const char* fragmentShaderPath);
 
+    bool loadExrEnvironmentMap(const char* environmentMapPath);
+
     void Use();
 
     void SetUniform(const char* name, float value);
@@ -21,5 +23,6 @@ private:
     bool prepareShader(const char* vertexShaderPath, const char* fragmentShaderPath);
 
     unsigned int m_shaderProgram;
+    unsigned int m_environmentMap;
     bool m_initialized;
 };
