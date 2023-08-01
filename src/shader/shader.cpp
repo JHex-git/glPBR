@@ -104,6 +104,20 @@ void Shader::SetUniform(const char* name, glm::mat4 trans)
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(trans));
 }
 
+void Shader::SetUniform(const char* name, glm::mat3 trans)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(trans));
+}
+
+void Shader::SetUniform(const char* name, glm::vec3 vec)
+{
+    assert(m_initialized);
+    int location = glGetUniformLocation(m_shaderProgram, name);
+    glUniform3fv(location, 1, glm::value_ptr(vec));
+}
+
 bool Shader::prepareShader(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
     unsigned int vertexShader;

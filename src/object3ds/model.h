@@ -16,8 +16,8 @@ public:
 
     void Draw(Shader& shader);
 private:
-    void processNode(aiNode* node, const aiScene* scene);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+    void processNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform);
+    Mesh processMesh(aiMesh* mesh, const aiScene* scene, const glm::mat4& transform);
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
     unsigned int TextureFromFile(const char* path, const std::string& directory);
 

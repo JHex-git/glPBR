@@ -12,6 +12,7 @@ public:
 
     inline glm::mat4 GetViewMatrix() const { return glm::lookAt(m_position, m_position + m_direction, m_up); }
     inline glm::mat4 GetProjectionMatrix() const { return m_projection_mat; }
+    inline glm::vec3 GetPosition() const { return m_position; }
     inline void SetSpeed(float speed) { m_speed = speed; }
 
     void Rotate(float xpos, float ypos);

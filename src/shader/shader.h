@@ -18,6 +18,8 @@ public:
     void SetUniform(const char* name, int value);
     void SetUniform(const char* name, bool value);
     void SetUniform(const char* name, glm::mat4 trans);
+    void SetUniform(const char* name, glm::mat3 trans);
+    void SetUniform(const char* name, glm::vec3 vec);
 
 private:
     bool prepareShader(const char* vertexShaderPath, const char* fragmentShaderPath);

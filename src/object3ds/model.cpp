@@ -18,7 +18,7 @@ void Model::Load(const char* path)
         return;
     }
 
-    processNode(scene->mRootNode, scene);
+    processNode(scene->mRootNode, scene, glm::mat4(1.0f));
 
     for (int i = 0; i < m_meshes.size(); ++i)
     {
@@ -34,34 +34,42 @@ void Model::Draw(Shader& shader)
     }
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene)
+void Model::processNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform)
 {
+    auto nodeTransform = node->mTransformation;
+    glm::mat4 transform = parentTransform * glm::mat4(
+        nodeTransform.a1, nodeTransform.b1, nodeTransform.c1, nodeTransform.d1,
+        nodeTransform.a2, nodeTransform.b2, nodeTransform.c2, nodeTransform.d2,
+        nodeTransform.a3, nodeTransform.b3, nodeTransform.c3, nodeTransform.d3,
+        nodeTransform.a4, nodeTransform.b4, nodeTransform.c4, nodeTransform.d4);
     // process all the node’s meshes (if any)
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        m_meshes.push_back(processMesh(mesh, scene));
+        m_meshes.push_back(processMesh(mesh, scene, transform));
     }
     // then do the same for each of its children
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(node->mChildren[i], scene);
+        processNode(node->mChildren[i], scene, transform);
     }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
+Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const glm::mat4& transform)
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
-
+    auto normalMatrix = glm::transpose(glm::inverse(transform));
     // process vertices
     for(unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
         // process vertex positions, normals and texture coordinates
         vertex.position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+        vertex.position = transform * glm::vec4(vertex.position, 1.0f);
         vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        vertex.normal = glm::normalize(normalMatrix * glm::vec4(vertex.normal, 0.0f));
         if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
         {
             vertex.texCoords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
@@ -95,15 +103,12 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         // normal maps
         std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-        // // height maps
-        // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_height");
-        // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
         // metallic maps
-        std::vector<Texture> metalicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metalic");
-        textures.insert(textures.end(), metalicMaps.begin(), metalicMaps.end());
-        // roughness maps
-        std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness");
-        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metallic");
+        textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+        // // roughness maps
+        // std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness");
+        // textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
         // emissive maps
         std::vector<Texture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissive");
         textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
@@ -124,6 +129,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* material, aiTexture
     {
         aiString str;
         material->GetTexture(type, i, &str);
+        std::cout << str.C_Str() << std::endl;
         // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
         auto iter = m_textures_loaded.find(str.C_Str());
         if (iter != m_textures_loaded.end())
@@ -134,7 +140,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* material, aiTexture
         else
         {   // if texture hasn’t been loaded already, load it
             Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), "resources/");
+            texture.id = TextureFromFile(str.C_Str(), "resources/psr-13/");
             texture.type = typeName;
             textures.push_back(texture);
             m_textures_loaded.insert(std::make_pair(str.C_Str(), texture)); // store it as texture loaded for entire model, to ensure we won’t unnecesery load duplicate textures.
@@ -148,6 +154,7 @@ unsigned int Model::TextureFromFile(const char* path, const std::string& directo
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
     unsigned int textureID;
+    glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &textureID);
     int width, height, nrComponents;
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);

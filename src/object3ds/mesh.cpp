@@ -36,22 +36,22 @@ void Mesh::Draw(Shader& shader)
     unsigned int specularTextureNumber = 0;
     unsigned int normalTextureNumber = 0;
     // unsigned int heightTextureNumber = 0;
-    unsigned int metalicTextureNumber = 0;
+    unsigned int metallicTextureNumber = 0;
     unsigned int roughnessTextureNumber = 0;
     unsigned int aoTextureNumber = 0;
     unsigned int displacementTextureNumber = 0;
     unsigned int emissiveTextureNumber = 0;
     for (int i = 0; i < m_textures.size(); ++i)
     {
-        glActiveTexture(GL_TEXTURE0 + i + 1); // 0 is reserved for the environment map
+        glActiveTexture(GL_TEXTURE0 + i + 3);
         std::string name = m_textures[i].type;
         std::string number;
         if (name == "albedo") number = std::to_string(++albedoTextureNumber);
         else if (name == "specular") number = std::to_string(++specularTextureNumber);
         else if (name == "normal") number = std::to_string(++normalTextureNumber);
         // else if (name == "height") number = std::to_string(++heightTextureNumber);
-        else if (name == "metalic") number = std::to_string(++metalicTextureNumber);
-        else if (name == "roughness") number = std::to_string(++roughnessTextureNumber);
+        else if (name == "metallic") number = std::to_string(++metallicTextureNumber);
+        // else if (name == "roughness") number = std::to_string(++roughnessTextureNumber);
         else if (name == "emissive") number = std::to_string(++emissiveTextureNumber);
         else if (name == "displacement") number = std::to_string(++displacementTextureNumber);
         else if (name == "ao") number = std::to_string(++aoTextureNumber);
@@ -60,7 +60,9 @@ void Mesh::Draw(Shader& shader)
             std::cerr << "ERROR::MESH::DRAW::TEXTURE_TYPE_NOT_SUPPORTED" << std::endl;
             continue;
         }
-        shader.SetUniform((name + "Map" + number).c_str(), i + 1);
+        if (name == "roughness") std::cout << "hello" << std::endl;
+        shader.SetUniform((name + "Map" + number).c_str(), i + 3);
+
         glBindTexture(GL_TEXTURE_2D, m_textures[i].id);
     }
 
