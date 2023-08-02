@@ -10,6 +10,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "utility/stb_image.h"
 #include "shader/shader.h"
+
+namespace shader
+{
+
 bool Shader::Initialize(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
     glm::value_ptr(glm::mat4(1.0f));
@@ -33,47 +37,6 @@ Shader::~Shader()
     {
         glDeleteProgram(m_shaderProgram);
     }
-}
-
-bool Shader::loadExrEnvironmentMap(const char* environmentMapPath)
-{
-    unsigned int initialized = m_initialized;
-    unsigned int shaderProgram = m_shaderProgram;
-    m_initialized = false;
-    m_shaderProgram = 0;
-
-    if (prepareShader("src/shader/environmentMap.vert", "src/shader/environmentMap.frag"))
-    {
-        Use();
-
-        int width, height, nrComponents;
-        float* data = stbi_loadf(environmentMapPath, &width, &height, &nrComponents, 0);
-        if (data)
-        {
-            glGenTextures(1, &m_environmentMap);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, m_environmentMap);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            stbi_image_free(data);
-            SetUniform("environmentMap", 0);
-
-            m_initialized = initialized;
-            m_shaderProgram = shaderProgram;
-            return true;
-        }
-        else
-        {
-            std::cerr << "Error: Fail to load environment map" << std::endl;
-        }
-    }
-    
-    m_initialized = initialized;
-    m_shaderProgram = shaderProgram;
-    return false;
 }
 
 void Shader::SetUniform(const char* name, float value)
@@ -208,4 +171,5 @@ bool Shader::prepareShader(const char* vertexShaderPath, const char* fragmentSha
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     return true;
+}
 }

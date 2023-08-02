@@ -4,6 +4,7 @@
 
 namespace object3ds
 {
+using shader::Shader;
 
 void Mesh::SetupMesh()
 {
@@ -60,7 +61,6 @@ void Mesh::Draw(Shader& shader)
             std::cerr << "ERROR::MESH::DRAW::TEXTURE_TYPE_NOT_SUPPORTED" << std::endl;
             continue;
         }
-        if (name == "roughness") std::cout << "hello" << std::endl;
         shader.SetUniform((name + "Map" + number).c_str(), i + 3);
 
         glBindTexture(GL_TEXTURE_2D, m_textures[i].id);

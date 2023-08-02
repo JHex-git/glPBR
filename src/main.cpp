@@ -8,6 +8,7 @@
 #include "utility/stb_image.h"
 
 using object3ds::Model;
+using shader::Shader;
 
 std::shared_ptr<cameras::Camera> camera;
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -85,10 +86,10 @@ int main()
     });
 
     Model model;
-    model.Load("resources/psr-13/scene.gltf");
+    model.Load("../resources/psr-13/scene.gltf");
     {
         Shader pbrShader;
-        assert(pbrShader.Initialize("shader/pbr.vert", "shader/pbr.frag"));
+        assert(pbrShader.Initialize("../shader/pbr.vert", "../shader/pbr.frag"));
 
         pbrShader.SetUniform("irradianceMap", 0);
         pbrShader.SetUniform("prefilterMap", 1);
@@ -126,7 +127,6 @@ int main()
         glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
         glViewport(0, 0, scrWidth, scrHeight);
 
-        // pbrShader.loadExrEnvironmentMap("resources/environmentMap/courtyard.exr");
         while(!glfwWindowShouldClose(window))
         {
             float currentFrame = glfwGetTime();
@@ -284,7 +284,7 @@ void equirectangularToCubemapShader(unsigned int& envCubemap, unsigned int captu
     // pbr: load the HDR environment map
     // ---------------------------------
     int width, height, nrComponents;
-    float *data = stbi_loadf("resources/environmentMap/courtyard.hdr", &width, &height, &nrComponents, 0);
+    float *data = stbi_loadf("../resources/environmentMap/courtyard.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
@@ -305,7 +305,7 @@ void equirectangularToCubemapShader(unsigned int& envCubemap, unsigned int captu
     }
 
     Shader equirectangularToCubemapShader;
-    assert(equirectangularToCubemapShader.Initialize("shader/cubemap.vert", "shader/equirectangular_to_cubemap.frag"));
+    assert(equirectangularToCubemapShader.Initialize("../shader/cubemap.vert", "../shader/equirectangular_to_cubemap.frag"));
     // pbr: setup cubemap to render to and attach to framebuffer
     // ---------------------------------------------------------
     glGenTextures(1, &envCubemap);
@@ -348,7 +348,7 @@ void equirectangularToCubemapShader(unsigned int& envCubemap, unsigned int captu
 void renderIrradianceCubemap(unsigned int& irradianceMap, unsigned int envCubemap, unsigned int captureFBO, unsigned int captureRBO, const glm::mat4& captureProjection, const glm::mat4 captureViews[6])
 {
     Shader irradianceShader;
-    assert(irradianceShader.Initialize("shader/cubemap.vert", "shader/irradiance_convolution.frag"));
+    assert(irradianceShader.Initialize("../shader/cubemap.vert", "../shader/irradiance_convolution.frag"));
     // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
     // --------------------------------------------------------------------------------
     glGenTextures(1, &irradianceMap);
@@ -391,7 +391,7 @@ void renderIrradianceCubemap(unsigned int& irradianceMap, unsigned int envCubema
 void renderPrefilterCubemap(unsigned int &prefilterMap, unsigned int envCubemap, unsigned int captureFBO, unsigned int captureRBO, const glm::mat4& captureProjection, const glm::mat4 captureViews[6])
 {
     Shader prefilterShader;
-    assert(prefilterShader.Initialize("shader/cubemap.vert", "shader/prefilter.frag"));
+    assert(prefilterShader.Initialize("../shader/cubemap.vert", "../shader/prefilter.frag"));
     glGenTextures(1, &prefilterMap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
     for (unsigned int i = 0; i < 6; ++i)
@@ -442,7 +442,7 @@ void renderPrefilterCubemap(unsigned int &prefilterMap, unsigned int envCubemap,
 void renderBRDFLUT(unsigned int &brdfLUTTexture, unsigned int captureFBO, unsigned int captureRBO)
 {
     Shader brdfShader;
-    assert(brdfShader.Initialize("shader/brdf.vert", "shader/brdf.frag"));
+    assert(brdfShader.Initialize("../shader/brdf.vert", "../shader/brdf.frag"));
 
     glGenTextures(1, &brdfLUTTexture);
 

@@ -7,6 +7,7 @@
 
 namespace object3ds
 {
+using shader::Shader;
 
 void Model::Load(const char* path)
 {
@@ -129,7 +130,6 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* material, aiTexture
     {
         aiString str;
         material->GetTexture(type, i, &str);
-        std::cout << str.C_Str() << std::endl;
         // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
         auto iter = m_textures_loaded.find(str.C_Str());
         if (iter != m_textures_loaded.end())

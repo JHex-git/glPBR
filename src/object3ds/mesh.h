@@ -7,6 +7,7 @@
 
 namespace object3ds
 {
+using shader::Shader;
     
 struct Vertex
 {

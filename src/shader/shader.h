@@ -3,14 +3,15 @@
 #include <glm/glm.hpp>
 #include <memory>
 
+namespace shader
+{
+
 class Shader
 {
 public:
     ~Shader();
 
     bool Initialize(const char* vertexShaderPath, const char* fragmentShaderPath);
-
-    bool loadExrEnvironmentMap(const char* environmentMapPath);
 
     void Use();
 
@@ -28,3 +29,4 @@ private:
     unsigned int m_environmentMap;
     bool m_initialized;
 };
+}
