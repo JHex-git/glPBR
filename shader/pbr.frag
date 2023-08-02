@@ -9,8 +9,8 @@ uniform sampler2D albedoMap1;
 uniform sampler2D normalMap1;
 uniform sampler2D metallicMap1;
 // uniform sampler2D roughnessMap1;
-uniform sampler2D aoMap1;
-uniform sampler2D emissiveMap1;
+// uniform sampler2D aoMap1;
+// uniform sampler2D emissiveMap1;
 
 // IBL
 uniform samplerCube irradianceMap;
@@ -48,8 +48,8 @@ void main()
     vec3 albedo = pow(texture(albedoMap1, TexCoords).rgb, vec3(2.2));
     float metallic = texture(metallicMap1, TexCoords).b;
     float roughness = texture(metallicMap1, TexCoords).g;
-    float ao = texture(aoMap1, TexCoords).r;
-    vec3 emissive = texture(emissiveMap1, TexCoords).rgb;
+    // float ao = texture(aoMap1, TexCoords).r;
+    // vec3 emissive = texture(emissiveMap1, TexCoords).rgb;
        
     // input lighting data
     vec3 N = getNormalFromMap();
@@ -79,7 +79,8 @@ void main()
     vec3 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rgb;
     vec3 specular = prefilteredColor * (F * brdf.r + brdf.g);
 
-    vec3 ambient = (kD * diffuse + specular) * ao;
+    // vec3 ambient = (kD * diffuse + specular) * ao;
+    vec3 ambient = kD * diffuse + specular;
     
     vec3 color = ambient + Lo;
     // vec3 color = ambient + Lo + pow(emissive, vec3(2.2));
